@@ -1,0 +1,46 @@
+version: "3.8"
+services:
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper
+    container_name: zookeeper-registry
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+    ports:
+      - "2181:2181"
+    networks:
+      - kafka_net
+
+  kafka:
+    image: confluentinc/cp-kafka
+    container_name: kafka-broker
+    environment:
+      - KAFKA_ADVERTISED_LISTENERS=LISTENER_DOCKER_INTERNAL://kafka:19092,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=LISTENER_DOCKER_INTERNAL
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_BROKER_ID=1
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+    ports:
+      - "9092:9092"
+    networks:
+      - kafka_net
+    depends_on:
+      - zookeeper
+    restart: on-failure
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    container_name: kafdrop-ui
+    environment:
+      - KAFKA_BROKERCONNECT=kafka:19092
+    ports:
+      - "19000:9000"
+    depends_on:
+      - kafka
+    networks:
+      - kafka_net
+
+networks:
+  kafka_net:
+    driver: "bridge"
