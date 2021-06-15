@@ -7,3 +7,10 @@ spring:
         binder:
           brokers: localhost:9091,localhost:9092,localhost:9093
           zkNodes: localhost:2181,localhost:2182,localhost:2183
+
+      function:
+        definition: newStock;
+
+      bindings:
+        newStock-in-0:
+          destination: new-stock-topic
